@@ -1,3 +1,4 @@
+// src/pages/Dashboard.tsx
 
 import { useState } from 'react';
 import { 
@@ -14,7 +15,6 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Plus, 
-  MessageCircle, 
   Settings, 
   BarChart3, 
   CreditCard, 
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import DashboardHome from '../components/dashboard/DashboardHome';
 import AddService from '../components/dashboard/AddService';
-import Messages from '../components/dashboard/Messages';
+// The 'Messages' import has been removed
 import DashboardSettings from '../components/dashboard/DashboardSettings';
 import Analytics from '../components/dashboard/Analytics';
 import Pricing from '../components/dashboard/Pricing';
@@ -35,7 +35,7 @@ const Dashboard = () => {
   const menuItems = [
     { id: 'home', label: 'Dashboard', icon: Home },
     { id: 'add-service', label: 'Add Service', icon: Plus },
-    { id: 'messages', label: 'Messages', icon: MessageCircle },
+    // The 'messages' item has been removed from this array
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'pricing', label: 'Pricing', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -47,8 +47,7 @@ const Dashboard = () => {
         return <DashboardHome />;
       case 'add-service':
         return <AddService />;
-      case 'messages':
-        return <Messages />;
+      // The 'messages' case has been removed
       case 'analytics':
         return <Analytics />;
       case 'pricing':
@@ -73,7 +72,7 @@ const Dashboard = () => {
               </div>
             </div>
           </SidebarHeader>
-          
+
           <SidebarContent>
             <SidebarMenu>
               {menuItems.map((item) => (
