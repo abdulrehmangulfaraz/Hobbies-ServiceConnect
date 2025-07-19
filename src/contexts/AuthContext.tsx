@@ -9,13 +9,14 @@ import {
   GoogleAuthProvider,
   signOut,
 } from 'firebase/auth';
-import { auth, db } from '@/firebase'; // Import from your firebase config
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from '@/firebase';
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 
 interface User {
   id: string;
   name: string | null;
   email: string | null;
+  subscriptionStatus?: 'none' | 'active';
 }
 
 interface AuthContextType {
@@ -23,6 +24,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   googleLogin: () => Promise<boolean>;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
+  updateSubscription: (status: 'none' | 'active') => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -44,9 +46,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const newUser = {
                 name: firebaseUser.displayName,
                 email: firebaseUser.email,
+                subscriptionStatus: 'none',
             };
             await setDoc(userDocRef, newUser);
-            setUser({ id: firebaseUser.uid, ...newUser });
+            setUser({ id: firebaseUser.uid, ...newUser } as User);
         }
       } else {
         setUser(null);
@@ -56,6 +59,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => unsubscribe();
   }, []);
+
+  const updateSubscription = async (status: 'none' | 'active') => {
+    if (user) {
+        const userDocRef = doc(db, "users", user.id);
+        await updateDoc(userDocRef, { subscriptionStatus: status });
+        setUser({ ...user, subscriptionStatus: status });
+    }
+  };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -92,18 +103,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setDoc(doc(db, "users", firebaseUser.uid), {
         name: name,
         email: email,
+        subscriptionStatus: 'none',
       });
-
-      // ** NEW LINE HERE **
-      // Sign the user out immediately after successful registration
       await signOut(auth);
-
       return true;
     } catch (error) {
       console.error("Signup error:", error);
       return false;
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
 
@@ -112,7 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, googleLogin, signup, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, googleLogin, signup, logout, isLoading, updateSubscription }}>
       {children}
     </AuthContext.Provider>
   );
