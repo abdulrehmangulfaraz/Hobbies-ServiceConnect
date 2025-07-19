@@ -41,27 +41,26 @@ const ServiceForm = () => {
         try {
             const newService = {
                 providerId: user.id,
-                name: user.name, // Using 'name' to match ServiceDetail page
+                name: user.name,
                 serviceName,
                 price: `From ${price} DKK`,
                 priceDetails,
-                description, // Short description for the card
-                longDescription, // Full "About Me" description
+                description,
+                longDescription,
                 postalCode,
                 location,
                 availability,
                 experience,
                 contactEmail,
                 contactPhone,
-                image: '/uploads/670ed39c-e49b-4baf-bdfa-6550e11d4230.png', // Placeholder Image
-                rating: Math.floor(Math.random() * 2) + 4, // Random 4 or 5 star rating for now
+                image: '/uploads/670ed39c-e49b-4baf-bdfa-6550e11d4230.png',
+                rating: Math.floor(Math.random() * 2) + 4,
                 createdAt: new Date(),
             };
 
             await addDoc(collection(db, "services"), newService);
             toast({ title: "Success!", description: "Your new service has been added." });
 
-            // Reset form fields after submission
             setServiceName(''); setPrice(''); setDescription(''); setLongDescription('');
             setPostalCode(''); setLocation(''); setAvailability(''); setExperience('');
             setPriceDetails(''); setContactEmail(user?.email || ''); setContactPhone('');
@@ -146,7 +145,8 @@ const ServiceForm = () => {
 
 const AddService = () => {
   const { user } = useAuth();
-  if (user?.subscriptionStatus === 'active') {
+  // This now correctly checks for a specific plan name instead of a generic status
+  if (user?.planName && user.planName !== 'none') {
     return <ServiceForm />;
   } else {
     return <Pricing />;

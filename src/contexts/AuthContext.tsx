@@ -16,7 +16,7 @@ interface User {
   id: string;
   name: string | null;
   email: string | null;
-  subscriptionStatus?: 'none' | 'active';
+  planName?: 'none' | 'Basic' | 'Premium' | 'Enterprise'; // Specific plan names
 }
 
 interface AuthContextType {
@@ -24,7 +24,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   googleLogin: () => Promise<boolean>;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
-  updateSubscription: (status: 'none' | 'active') => Promise<void>;
+  updateSubscription: (planName: 'none' | 'Basic' | 'Premium' | 'Enterprise') => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const newUser = {
                 name: firebaseUser.displayName,
                 email: firebaseUser.email,
-                subscriptionStatus: 'none',
+                planName: 'none',
             };
             await setDoc(userDocRef, newUser);
             setUser({ id: firebaseUser.uid, ...newUser } as User);
@@ -60,11 +60,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  const updateSubscription = async (status: 'none' | 'active') => {
+  const updateSubscription = async (planName: 'none' | 'Basic' | 'Premium' | 'Enterprise') => {
     if (user) {
         const userDocRef = doc(db, "users", user.id);
-        await updateDoc(userDocRef, { subscriptionStatus: status });
-        setUser({ ...user, subscriptionStatus: status });
+        await updateDoc(userDocRef, { planName: planName });
+        setUser({ ...user, planName: planName });
     }
   };
 
@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setDoc(doc(db, "users", firebaseUser.uid), {
         name: name,
         email: email,
-        subscriptionStatus: 'none',
+        planName: 'none', // Default plan on signup
       });
       await signOut(auth);
       return true;
