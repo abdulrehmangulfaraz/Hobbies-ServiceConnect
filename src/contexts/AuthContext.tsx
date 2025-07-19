@@ -9,7 +9,7 @@ import {
   GoogleAuthProvider,
   signOut,
 } from 'firebase/auth';
-import { auth, db } from '../firebase'; // Import from your firebase config
+import { auth, db } from '@/firebase'; // Import from your firebase config
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 interface User {
@@ -41,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (userDocSnap.exists()) {
             setUser({ id: firebaseUser.uid, ...userDocSnap.data() } as User);
         } else {
-             // This case handles users signing in with Google for the first time
             const newUser = {
                 name: firebaseUser.displayName,
                 email: firebaseUser.email,
@@ -90,11 +89,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
-      // Save additional user info to Firestore
       await setDoc(doc(db, "users", firebaseUser.uid), {
         name: name,
         email: email,
       });
+
+      // ** NEW LINE HERE **
+      // Sign the user out immediately after successful registration
+      await signOut(auth);
+
       return true;
     } catch (error) {
       console.error("Signup error:", error);

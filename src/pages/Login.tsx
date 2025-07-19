@@ -1,6 +1,6 @@
 // src/pages/Login.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,9 +13,17 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, googleLogin, isLoading } = useAuth();
+  const { login, googleLogin, isLoading, user } = useAuth(); // Add user here
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // This useEffect will run when the 'user' state changes
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +37,7 @@ const Login = () => {
       const success = await login(email, password);
       if (success) {
         toast({ title: "Welcome back!", description: "You have been successfully logged in." });
-        navigate('/dashboard');
+        // The useEffect will handle the navigation
       } else {
         toast({ title: "Login failed", description: "Please check your credentials and try again.", variant: "destructive" });
       }
@@ -43,7 +51,7 @@ const Login = () => {
       const success = await googleLogin();
       if (success) {
         toast({ title: "Welcome!", description: "You have been successfully logged in with Google." });
-        navigate('/dashboard');
+        // The useEffect will handle the navigation
       } else {
         toast({ title: "Google login failed", description: "Please try again.", variant: "destructive" });
       }

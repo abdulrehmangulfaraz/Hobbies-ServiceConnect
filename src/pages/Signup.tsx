@@ -21,7 +21,7 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name || !email || !password || !confirmPassword) {
       toast({
         title: "Missing fields",
@@ -53,10 +53,10 @@ const Signup = () => {
       const success = await signup(name, email, password);
       if (success) {
         toast({
-          title: "Welcome to ServiceConnect!",
-          description: "Your account has been created successfully.",
+          title: "Account Created!",
+          description: "You can now log in with your new credentials.",
         });
-        navigate('/dashboard');
+        navigate('/login');
       } else {
         toast({
           title: "Signup failed",
