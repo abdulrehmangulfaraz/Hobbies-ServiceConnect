@@ -6,37 +6,38 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Star, CreditCard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { loadStripe } from '@stripe/stripe-js';
 
-// Define the plan names as a specific type
+// Load the Stripe object with your publishable key from .env.local
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
 type PlanName = 'Basic' | 'Premium' | 'Enterprise';
 
 const Pricing = () => {
-  const { user, updateSubscription } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  const handlePlanSelection = async (planName: PlanName) => {
-    // This is where we will trigger Stripe in the next step.
-    // For now, it will just update the user's plan directly.
-    console.log(`User selected ${planName}`);
-    try {
-        await updateSubscription(planName);
-        toast({
-            title: "Subscription Updated!",
-            description: `You are now on the ${planName} plan.`
-        });
-    } catch (error) {
-        toast({
-            title: "Error",
-            description: `Could not update subscription. Please try again.`,
-            variant: "destructive"
-        });
+  const handlePlanSelection = async (plan: { name: PlanName, priceId: string }) => {
+    if (!user) {
+      toast({ title: "Please log in to select a plan.", variant: "destructive" });
+      return;
     }
+
+    toast({ title: "Redirecting to checkout..." });
+
+    // This is where we will call our secure backend function (Firebase Cloud Function)
+    // For now, we'll log it to show it's ready.
+    console.log(`Preparing checkout for ${plan.name} with Price ID: ${plan.priceId}`);
+    alert(`This will redirect to Stripe Checkout for the ${plan.name} plan. The next step is to build the backend function that makes this happen.`);
   };
 
   const plans = [
-    { name: 'Basic' as PlanName, price: '$19', period: 'month', description: 'Perfect for getting started', features: ['List up to 3 services', 'Basic messaging', 'Standard support', 'Basic analytics'], },
-    { name: 'Premium' as PlanName, price: '$39', period: 'month', description: 'Most popular for growing businesses', popular: true, features: ['Unlimited services', 'Priority messaging', 'Advanced analytics', 'Premium support', 'Featured listings'], },
-    { name: 'Enterprise' as PlanName, price: '$79', period: 'month', description: 'For established providers', features: ['Everything in Premium', 'Multi-location support', 'API access', 'Dedicated account manager'], }
+    //
+    // ⬇️ ACTION REQUIRED: Replace these with your actual Price IDs from Stripe ⬇️
+    //
+    { name: 'Basic' as PlanName, price: '$19', period: 'month', description: 'Perfect for getting started', features: ['List up to 3 services', 'Basic messaging', 'Standard support', 'Basic analytics'], priceId: 'price_1RmZKZGCmL9LrymPyp7DbEyi' },
+    { name: 'Premium' as PlanName, price: '$39', period: 'month', description: 'Most popular', popular: true, features: ['Unlimited services', 'Priority messaging', 'Advanced analytics', 'Premium support', 'Featured listings'], priceId: 'price_1RmZQiGCmL9LrymPXBmZrgXm' },
+    { name: 'Enterprise' as PlanName, price: '$79', period: 'month', description: 'For established providers', features: ['Everything in Premium', 'Multi-location support', 'API access', 'Dedicated account manager'], priceId: 'price_1P...' }
   ];
 
   return (
@@ -68,7 +69,7 @@ const Pricing = () => {
                 </ul>
                 <Button 
                   className={`w-full ${isCurrentPlan ? 'bg-green-600 hover:bg-green-700' : plan.popular ? 'bg-pink-600 hover:bg-pink-700' : 'bg-gray-600 hover:bg-gray-700'}`}
-                  onClick={() => !isCurrentPlan && handlePlanSelection(plan.name)}
+                  onClick={() => !isCurrentPlan && handlePlanSelection(plan)}
                   disabled={isCurrentPlan}
                 >
                   {isCurrentPlan ? (<><Star className="h-4 w-4 mr-2" /> Current Plan</>) 
