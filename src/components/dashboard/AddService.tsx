@@ -11,166 +11,201 @@ import { db } from '@/firebase';
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from '@/contexts/AuthContext';
 import Pricing from './Pricing';
+import { Link } from 'react-router-dom';
+import { Upload, Loader2 } from 'lucide-react';
 
-// Define props for the AddService component
+// ⬇️ ACTION REQUIRED: Replace these with your Cloudinary details ⬇️
+const CLOUDINARY_CLOUD_NAME = "dwrkz6not";
+const CLOUDINARY_UPLOAD_PRESET = "hobbies_preset"; // The same preset you created earlier
+
 interface AddServiceProps {
   navigateToTab: (tabId: string) => void;
 }
 
 const ServiceForm = () => {
-    const { user } = useAuth();
-    const { toast } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-    const [serviceName, setServiceName] = useState('');
-    const [price, setPrice] = useState('');
-    const [description, setDescription] = useState('');
-    const [longDescription, setLongDescription] = useState('');
-    const [postalCode, setPostalCode] = useState('');
-    const [location, setLocation] = useState('');
-    const [availability, setAvailability] = useState('');
-    const [experience, setExperience] = useState('');
-    const [priceDetails, setPriceDetails] = useState('');
-    const [contactEmail, setContactEmail] = useState(user?.email || '');
+  const [serviceName, setServiceName] = useState('');
+  const [price, setPrice] = useState('');
+  const [description, setDescription] = useState('');
+  const [longDescription, setLongDescription] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [location, setLocation] = useState('');
+  const [availability, setAvailability] = useState('');
+  const [experience, setExperience] = useState('');
+  const [priceDetails, setPriceDetails] = useState('');
+  const [contactEmail, setContactEmail] = useState(user?.email || '');
 
-    const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) {
-            toast({ title: "Authentication Error", variant: "destructive" });
-            return;
-        }
+  const handleImageUpload = async () => {
+    if (!imageFile) {
+      toast({ title: "Image Required", description: "Please select an image for your service.", variant: "destructive" });
+      return null;
+    }
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', imageFile);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    try {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Image upload failed');
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      toast({ title: "Image Upload Failed", description: "Could not upload the service image.", variant: "destructive" });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
-        setIsLoading(true);
-        try {
-            const newService = {
-                providerId: user.id,
-                name: user.name,
-                contactPhone: user.phone || '', // Add this line
-                serviceName,
-                price: `From ${price} DKK`,
-                priceDetails,
-                description,
-                longDescription,
-                postalCode,
-                location,
-                availability,
-                experience,
-                contactEmail,
-                image: '/uploads/670ed39c-e49b-4baf-bdfa-6550e11d4230.png',
-                rating: Math.floor(Math.random() * 2) + 4,
-                createdAt: new Date(),
-            };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast({ title: "Authentication Error", variant: "destructive" });
+      return;
+    }
 
-            await addDoc(collection(db, "services"), newService);
-            toast({ title: "Success!", description: "Your new service has been added." });
+    setIsLoading(true);
 
-            setServiceName(''); setPrice(''); setDescription(''); setLongDescription('');
-            setPostalCode(''); setLocation(''); setAvailability(''); setExperience('');
-            setPriceDetails(''); setContactEmail(user?.email || '');
+    const imageUrl = await handleImageUpload();
+    if (!imageUrl) {
+      setIsLoading(false);
+      return; // Stop if image upload fails
+    }
 
-        } catch (error) {
-            console.error("Error adding document: ", error);
-            toast({ title: "Error", description: "Could not save the service details.", variant: "destructive" });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    try {
+      const newService = {
+        providerId: user.id,
+        name: user.name,
+        providerImageUrl: user.imageUrl || '',
+        contactPhone: user.phone || '',
+        serviceName,
+        price: `From ${price} DKK`,
+        priceDetails,
+        description,
+        longDescription,
+        postalCode,
+        location,
+        availability,
+        experience,
+        contactEmail,
+        image: imageUrl, // Use the new Cloudinary URL
+        rating: Math.floor(Math.random() * 2) + 4,
+        createdAt: new Date(),
+      };
+      await addDoc(collection(db, "services"), newService);
+      toast({ title: "Success!", description: "Your new service has been added." });
+      // Reset form
+      setServiceName(''); setPrice(''); setDescription(''); setLongDescription('');
+      setPostalCode(''); setLocation(''); setAvailability(''); setExperience('');
+      setPriceDetails(''); setContactEmail(user?.email || ''); setImageFile(null);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      toast({ title: "Error", description: "Could not save the service details.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return (
-        <div className="max-w-2xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>Describe Your Service</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                    <Label htmlFor="serviceName">Service Name</Label>
-                    <Input id="serviceName" placeholder="e.g., Professional Dog Walking" value={serviceName} onChange={(e) => setServiceName(e.target.value)} required />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="price">Starting Price (in DKK)</Label>
-                        <Input id="price" type="number" placeholder="e.g., 40" value={price} onChange={(e) => setPrice(e.target.value)} required />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="priceDetails">Price Details</Label>
-                        <Input id="priceDetails" placeholder="e.g., 40 kr for group, 60 kr for solo" value={priceDetails} onChange={(e) => setPriceDetails(e.target.value)} required />
-                    </div>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="description">Short Description (for Service Card)</Label>
-                    <Textarea id="description" placeholder="A brief, one-sentence summary of your service." value={description} onChange={(e) => setDescription(e.target.value)} required rows={2} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="longDescription">Full "About Me" Description</Label>
-                    <Textarea id="longDescription" placeholder="Tell customers about yourself, your experience, and what makes your service special." value={longDescription} onChange={(e) => setLongDescription(e.target.value)} required rows={5} />
-                </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="postalCode">Postal Code</Label>
-                        <Input id="postalCode" placeholder="e.g., 4690" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="location">Location / City</Label>
-                        <Input id="location" placeholder="e.g., Dalby" value={location} onChange={(e) => setLocation(e.target.value)} required />
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div className="space-y-2">
-                        <Label htmlFor="experience">Experience</Label>
-                        <Input id="experience" placeholder="e.g., 2+ years" value={experience} onChange={(e) => setExperience(e.target.value)} required />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="availability">Availability</Label>
-                        <Input id="availability" placeholder="e.g., Monday - Sunday, 7 AM - 7 PM" value={availability} onChange={(e) => setAvailability(e.target.value)} required />
-                    </div>
-                </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="contactEmail">Public Contact Email</Label>
-                        <Input id="contactEmail" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} required />
-                    </div>
-                </div>
-                <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isLoading}>
-                  {isLoading ? 'Adding Service...' : 'Add Service'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      );
+  return (
+    <div className="max-w-2xl mx-auto">
+      <Card>
+        <CardHeader><CardTitle>Describe Your Service</CardTitle></CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* ... other form fields ... */}
+            <div className="space-y-2">
+              <Label htmlFor="serviceName">Service Name</Label>
+              <Input id="serviceName" placeholder="e.g., Professional Dog Walking" value={serviceName} onChange={(e) => setServiceName(e.target.value)} required />
+            </div>
+
+            {/* Service Image Upload */}
+            <div className="space-y-2">
+              <Label htmlFor="serviceImage">Service Image</Label>
+              <Input id="serviceImage" type="file" accept="image/*" onChange={(e) => e.target.files && setImageFile(e.target.files[0])} className="file:text-pink-600" required />
+              {imageFile && <p className="text-sm text-gray-500 mt-1">Selected: {imageFile.name}</p>}
+            </div>
+
+            {/* ... rest of the form ... */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="price">Starting Price (in DKK)</Label>
+                <Input id="price" type="number" placeholder="e.g., 40" value={price} onChange={(e) => setPrice(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="priceDetails">Price Details</Label>
+                <Input id="priceDetails" placeholder="e.g., 40 kr for group, 60 kr for solo" value={priceDetails} onChange={(e) => setPriceDetails(e.target.value)} required />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Short Description (for Service Card)</Label>
+              <Textarea id="description" placeholder="A brief, one-sentence summary of your service." value={description} onChange={(e) => setDescription(e.target.value)} required rows={2} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="longDescription">Full "About Me" Description</Label>
+              <Textarea id="longDescription" placeholder="Tell customers about yourself, your experience, and what makes your service special." value={longDescription} onChange={(e) => setLongDescription(e.target.value)} required rows={5} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="postalCode">Postal Code</Label>
+                <Input id="postalCode" placeholder="e.g., 4690" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location / City</Label>
+                <Input id="location" placeholder="e.g., Dalby" value={location} onChange={(e) => setLocation(e.target.value)} required />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="experience">Experience</Label>
+                <Input id="experience" placeholder="e.g., 2+ years" value={experience} onChange={(e) => setExperience(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="availability">Availability</Label>
+                <Input id="availability" placeholder="e.g., Monday - Sunday, 7 AM - 7 PM" value={availability} onChange={(e) => setAvailability(e.target.value)} required />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail">Public Contact Email</Label>
+                <Input id="contactEmail" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} required />
+              </div>
+            </div>
+            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isLoading || isUploading}>
+              {isLoading || isUploading ? 'Saving Service...' : 'Add Service'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 const AddService = ({ navigateToTab }: AddServiceProps) => {
   const { user } = useAuth();
-
-  // Check 1: User must have a paid plan to see the form
-  if (!user?.planName || user.planName === 'none') {
-    return <Pricing />;
-  }
-
-  // Check 2: User must have a phone number on their profile
+  if (!user?.planName || user.planName === 'none') return <Pricing />;
   if (!user.phone) {
     return (
       <Card className="max-w-2xl mx-auto text-center">
-        <CardHeader>
-          <CardTitle>Phone Number Required</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Phone Number Required</CardTitle></CardHeader>
         <CardContent>
           <p className="mb-4 text-muted-foreground">
-            Please add a phone number to your profile before you can list a new service. This is required for the "Call Now" feature for customers.
+            Please add a phone number to your profile before you can list a new service.
           </p>
-          <Button onClick={() => navigateToTab('settings')}>
-            Go to Settings
-          </Button>
+          <Button onClick={() => navigateToTab('settings')}>Go to Settings</Button>
         </CardContent>
       </Card>
     );
   }
-
-  // If both checks pass, show the form
   return <ServiceForm />;
 };
 

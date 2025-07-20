@@ -1,13 +1,16 @@
+// src/components/ServiceCard.tsx
 
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, MapPin } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'; // Import Avatar components
 
 interface ServiceCardProps {
   id: string;
   name: string;
-  image: string;
+  image: string; // This is the service image
+  providerImageUrl?: string; // This is the provider's profile picture
   serviceName: string;
   description: string;
   rating: number;
@@ -19,6 +22,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   id,
   name,
   image,
+  providerImageUrl,
   serviceName,
   description,
   rating,
@@ -31,7 +35,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
         <div className="relative">
           <img
             src={image}
-            alt={name}
+            alt={serviceName}
             className="w-full h-48 sm:h-56 object-cover"
           />
           <div className="absolute top-4 right-4">
@@ -40,12 +44,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             </Badge>
           </div>
         </div>
-        
+
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-              {name.charAt(0)}
-            </div>
+            {/* Use the Avatar component to display the profile picture */}
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={providerImageUrl} alt={name} />
+              <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+            </Avatar>
             <div>
               <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{name}</h3>
               <div className="flex items-center space-x-1">
@@ -54,9 +60,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               </div>
             </div>
           </div>
-          
+
           <p className="text-gray-600 text-sm mb-4 line-clamp-2">{description}</p>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1">
               <div className="flex items-center">

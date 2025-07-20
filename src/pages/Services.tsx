@@ -7,11 +7,12 @@ import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Define the type for a single service object to match our Firestore documents
+// CHANGE 1: Add providerImageUrl to the Service interface
 interface Service {
     id: string;
-    name: string; // This is the provider's name from the user object
-    image: string; // The placeholder image URL
+    name: string;
+    image: string;
+    providerImageUrl?: string; // This is the new property
     serviceName: string;
     description: string;
     rating: number;
@@ -24,12 +25,11 @@ const Services = () => {
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch services from Firestore when the component mounts
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const servicesCollection = collection(db, "services");
-        const q = query(servicesCollection, orderBy("createdAt", "desc")); // Order by newest first
+        const q = query(servicesCollection, orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
 
         const servicesData = querySnapshot.docs.map(doc => ({
@@ -54,19 +54,19 @@ const Services = () => {
     let filtered = services;
 
     if (filters.category && filters.category !== 'All Categories') {
-      filtered = filtered.filter(service => 
+      filtered = filtered.filter(service =>
         service.serviceName.toLowerCase().includes(filters.category.toLowerCase())
       );
     }
 
     if (filters.postalCode) {
-      filtered = filtered.filter(service => 
+      filtered = filtered.filter(service =>
         service.postalCode.includes(filters.postalCode)
       );
     }
 
     if (filters.keyword) {
-      filtered = filtered.filter(service => 
+      filtered = filtered.filter(service =>
         service.serviceName.toLowerCase().includes(filters.keyword.toLowerCase()) ||
         service.description.toLowerCase().includes(filters.keyword.toLowerCase()) ||
         service.name.toLowerCase().includes(filters.keyword.toLowerCase())
@@ -94,7 +94,6 @@ const Services = () => {
 
         {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                {/* Skeleton loaders for a better loading experience */}
                 {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-80 w-full rounded-lg" />)}
             </div>
         ) : filteredServices.length > 0 ? (
@@ -105,6 +104,7 @@ const Services = () => {
                 id={service.id}
                 name={service.name}
                 image={service.image}
+                providerImageUrl={service.providerImageUrl} // CHANGE 2: Pass the prop to the card
                 serviceName={service.serviceName}
                 description={service.description}
                 rating={service.rating}

@@ -12,6 +12,7 @@ import {
 import { auth, db } from '@/firebase';
 import { doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
 
+// Add imageUrl to the User interface
 interface User {
   id: string;
   name: string | null;
@@ -22,13 +23,14 @@ interface User {
   imageUrl?: string;
 }
 
+// Add imageUrl to the updateUserProfile function parameters
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   googleLogin: () => Promise<boolean>;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
   updateSubscription: (planName: 'none' | 'Basic' | 'Premium' | 'Enterprise') => Promise<void>;
-  updateUserProfile: (data: { name: string; phone: string; description: string }) => Promise<void>;
+  updateUserProfile: (data: { name: string; phone: string; description: string; imageUrl?: string }) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -72,42 +74,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Updated function to handle user profile and service name synchronization
-// In src/contexts/AuthContext.tsx
+  // Corrected function to handle all profile data updates, including imageUrl
+  const updateUserProfile = async (data: { name: string; phone: string; description: string; imageUrl?: string }) => {
+    if (!user) return;
 
-// Updated function to handle user profile and service data synchronization
-const updateUserProfile = async (data: { name: string; phone: string; description: string }) => {
-  if (!user) return;
+    const batch = writeBatch(db);
+    const userDocRef = doc(db, "users", user.id);
 
-  // Start a Firestore batch
-  const batch = writeBatch(db);
+    const updateData: { [key: string]: any } = {
+        name: data.name,
+        phone: data.phone,
+        description: data.description,
+    };
 
-  // 1. Update the user's own profile document in the 'users' collection
-  const userDocRef = doc(db, "users", user.id);
-  batch.update(userDocRef, data);
+    if (data.imageUrl !== undefined) {
+        updateData.imageUrl = data.imageUrl;
+    }
 
-  // 2. If the name or phone number has changed, find and update all their services
-  if (data.name !== user.name || data.phone !== user.phone) {
-      const servicesCollection = collection(db, "services");
-      const q = query(servicesCollection, where("providerId", "==", user.id));
-      const querySnapshot = await getDocs(q);
+    batch.update(userDocRef, updateData);
 
-      querySnapshot.forEach(doc => {
-          const serviceRef = doc.ref;
-          // Update both name and phone number on each service document
-          batch.update(serviceRef, {
+    if (data.name !== user.name || data.phone !== user.phone || data.imageUrl !== user.imageUrl) {
+        const servicesCollection = collection(db, "services");
+        const q = query(servicesCollection, where("providerId", "==", user.id));
+        const querySnapshot = await getDocs(q);
+
+        const serviceUpdateData: {name: string; contactPhone: string; providerImageUrl?: string} = {
             name: data.name,
-            contactPhone: data.phone
-          });
-      });
-  }
+            contactPhone: data.phone,
+        };
 
-  // 3. Commit all the changes at once
-  await batch.commit();
+        if (data.imageUrl !== undefined) {
+            serviceUpdateData.providerImageUrl = data.imageUrl;
+        }
 
-  // 4. Update the local user state in the app
-  setUser({ ...user, ...data });
-};
+        querySnapshot.forEach(doc => {
+            batch.update(doc.ref, serviceUpdateData);
+        });
+    }
+
+    await batch.commit();
+    setUser({ ...user, ...updateData });
+  };
+
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
