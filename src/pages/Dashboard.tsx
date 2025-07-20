@@ -1,29 +1,28 @@
 // src/pages/Dashboard.tsx
 
 import { useState } from 'react';
-import { 
-  SidebarProvider, 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuItem, 
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  SidebarTrigger 
+  SidebarTrigger
 } from '@/components/ui/sidebar';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  Plus, 
-  Settings, 
-  BarChart3, 
-  CreditCard, 
+import {
+  Plus,
+  Settings,
+  BarChart3,
+  CreditCard,
   User,
   Home
 } from 'lucide-react';
 import DashboardHome from '../components/dashboard/DashboardHome';
 import AddService from '../components/dashboard/AddService';
-// The 'Messages' import has been removed
 import DashboardSettings from '../components/dashboard/DashboardSettings';
 import Analytics from '../components/dashboard/Analytics';
 import Pricing from '../components/dashboard/Pricing';
@@ -32,10 +31,14 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
 
+  // New function to handle navigation from child components
+  const navigateToTab = (tabId: string) => {
+    setActiveTab(tabId);
+  };
+
   const menuItems = [
     { id: 'home', label: 'Dashboard', icon: Home },
     { id: 'add-service', label: 'Add Service', icon: Plus },
-    // The 'messages' item has been removed from this array
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'pricing', label: 'Pricing', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -46,8 +49,8 @@ const Dashboard = () => {
       case 'home':
         return <DashboardHome />;
       case 'add-service':
-        return <AddService />;
-      // The 'messages' case has been removed
+        // Pass the navigateToTab function as a prop
+        return <AddService navigateToTab={navigateToTab} />;
       case 'analytics':
         return <Analytics />;
       case 'pricing':

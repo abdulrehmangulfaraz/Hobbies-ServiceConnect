@@ -12,6 +12,11 @@ import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from '@/contexts/AuthContext';
 import Pricing from './Pricing';
 
+// Define props for the AddService component
+interface AddServiceProps {
+  navigateToTab: (tabId: string) => void;
+}
+
 const ServiceForm = () => {
     const { user } = useAuth();
     const { toast } = useToast();
@@ -26,7 +31,6 @@ const ServiceForm = () => {
     const [experience, setExperience] = useState('');
     const [priceDetails, setPriceDetails] = useState('');
     const [contactEmail, setContactEmail] = useState(user?.email || '');
-    const [contactPhone, setContactPhone] = useState('');
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -42,6 +46,7 @@ const ServiceForm = () => {
             const newService = {
                 providerId: user.id,
                 name: user.name,
+                contactPhone: user.phone || '', // Add this line
                 serviceName,
                 price: `From ${price} DKK`,
                 priceDetails,
@@ -52,7 +57,6 @@ const ServiceForm = () => {
                 availability,
                 experience,
                 contactEmail,
-                contactPhone,
                 image: '/uploads/670ed39c-e49b-4baf-bdfa-6550e11d4230.png',
                 rating: Math.floor(Math.random() * 2) + 4,
                 createdAt: new Date(),
@@ -63,7 +67,7 @@ const ServiceForm = () => {
 
             setServiceName(''); setPrice(''); setDescription(''); setLongDescription('');
             setPostalCode(''); setLocation(''); setAvailability(''); setExperience('');
-            setPriceDetails(''); setContactEmail(user?.email || ''); setContactPhone('');
+            setPriceDetails(''); setContactEmail(user?.email || '');
 
         } catch (error) {
             console.error("Error adding document: ", error);
@@ -128,10 +132,6 @@ const ServiceForm = () => {
                         <Label htmlFor="contactEmail">Public Contact Email</Label>
                         <Input id="contactEmail" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} required />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="contactPhone">Public Contact Phone (Optional)</Label>
-                        <Input id="contactPhone" type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
-                    </div>
                 </div>
                 <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isLoading}>
                   {isLoading ? 'Adding Service...' : 'Add Service'}
@@ -143,14 +143,35 @@ const ServiceForm = () => {
       );
 }
 
-const AddService = () => {
+const AddService = ({ navigateToTab }: AddServiceProps) => {
   const { user } = useAuth();
-  // This now correctly checks for a specific plan name instead of a generic status
-  if (user?.planName && user.planName !== 'none') {
-    return <ServiceForm />;
-  } else {
+
+  // Check 1: User must have a paid plan to see the form
+  if (!user?.planName || user.planName === 'none') {
     return <Pricing />;
   }
+
+  // Check 2: User must have a phone number on their profile
+  if (!user.phone) {
+    return (
+      <Card className="max-w-2xl mx-auto text-center">
+        <CardHeader>
+          <CardTitle>Phone Number Required</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-muted-foreground">
+            Please add a phone number to your profile before you can list a new service. This is required for the "Call Now" feature for customers.
+          </p>
+          <Button onClick={() => navigateToTab('settings')}>
+            Go to Settings
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If both checks pass, show the form
+  return <ServiceForm />;
 };
 
 export default AddService;

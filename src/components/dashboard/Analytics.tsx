@@ -1,38 +1,58 @@
+// src/components/dashboard/Analytics.tsx
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, DollarSign, List } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { db } from '@/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Define a type for our service data
+interface Service {
+  serviceName: string;
+  rating: number;
+}
 
 const Analytics = () => {
+  const { user } = useAuth();
+  const [services, setServices] = useState<Service[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchServiceData = async () => {
+      try {
+        // Query for all services provided by the current user
+        const servicesCollection = collection(db, "services");
+        const q = query(servicesCollection, where("providerId", "==", user.id));
+        const querySnapshot = await getDocs(q);
+
+        const fetchedServices = querySnapshot.docs.map(doc => doc.data() as Service);
+        setServices(fetchedServices);
+
+      } catch (error) {
+        console.error("Error fetching analytics data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServiceData();
+  }, [user]);
+
+  // Static stats for now, can be replaced with real data later
   const stats = [
-    {
-      title: 'Total Views',
-      value: '2,847',
-      change: '+12%',
-      icon: Users,
-      color: 'text-blue-600'
-    },
-    {
-      title: 'Messages Received',
-      value: '146',
-      change: '+8%',
-      icon: BarChart3,
-      color: 'text-green-600'
-    },
-    {
-      title: 'Revenue',
-      value: '$3,240',
-      change: '+23%',
-      icon: DollarSign,
-      color: 'text-purple-600'
-    },
-    {
-      title: 'Conversion Rate',
-      value: '12.4%',
-      change: '+2.1%',
-      icon: TrendingUp,
-      color: 'text-orange-600'
-    }
+    { title: 'Profile Views', value: '2,847', change: '+12%', icon: Users, color: 'text-blue-600' },
+    { title: 'Total Services', value: services.length, change: '', icon: List, color: 'text-green-600' },
+    { title: 'Revenue (Month)', value: '$1,234', change: '+23%', icon: DollarSign, color: 'text-purple-600' },
+    { title: 'Conversion Rate', value: '12.4%', change: '+2.1%', icon: TrendingUp, color: 'text-orange-600' }
   ];
+
+  if (isLoading) {
+    return <Skeleton className="h-96 w-full" />;
+  }
 
   return (
     <div className="space-y-6">
@@ -45,9 +65,7 @@ const Analytics = () => {
                 <div>
                   <p className="text-sm text-gray-600">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className={`text-sm ${stat.color}`}>
-                    {stat.change} from last month
-                  </p>
+                  {stat.change && <p className={`text-sm ${stat.color}`}>{stat.change} from last month</p>}
                 </div>
                 <stat.icon className={`h-8 w-8 ${stat.color}`} />
               </div>
@@ -78,73 +96,26 @@ const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">House Cleaning</span>
-                <div className="flex items-center space-x-2">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div className="bg-pink-600 h-2 rounded-full" style={{ width: '85%' }}></div>
+              {services.length > 0 ? (
+                services.map((service, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">{service.serviceName}</span>
+                    <div className="flex items-center space-x-2">
+                      {/* Performance is based on rating out of 5, converted to a percentage */}
+                      <div className="w-24 bg-gray-200 rounded-full h-2">
+                        <div className="bg-pink-600 h-2 rounded-full" style={{ width: `${(service.rating / 5) * 100}%` }}></div>
+                      </div>
+                      <span className="text-sm font-medium">{service.rating}/5</span>
+                    </div>
                   </div>
-                  <span className="text-sm font-medium">85%</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Plumbing</span>
-                <div className="flex items-center space-x-2">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '70%' }}></div>
-                  </div>
-                  <span className="text-sm font-medium">70%</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Gardening</span>
-                <div className="flex items-center space-x-2">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: '92%' }}></div>
-                  </div>
-                  <span className="text-sm font-medium">92%</span>
-                </div>
-              </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">You have not added any services yet.</p>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Performance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Revenue increased</p>
-                  <p className="text-sm text-gray-600">23% increase from last month</p>
-                </div>
-              </div>
-              <span className="text-sm text-gray-500">Today</span>
-            </div>
-            
-            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Users className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">New profile views</p>
-                  <p className="text-sm text-gray-600">47 new views this week</p>
-                </div>
-              </div>
-              <span className="text-sm text-gray-500">This week</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

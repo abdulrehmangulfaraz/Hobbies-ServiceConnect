@@ -1,20 +1,38 @@
+// src/components/dashboard/DashboardSettings.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { User, Upload } from 'lucide-react';
 
 const DashboardSettings = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
+  const { toast } = useToast();
+
+  // Initialize state with user data or empty strings
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState('');
-  const [description, setDescription] = useState('');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [description, setDescription] = useState(user?.description || '');
   const [image, setImage] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+  // Effect to update form if user data loads after component mount
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+      setDescription(user.description || '');
+    }
+  }, [user]);
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -22,10 +40,18 @@ const DashboardSettings = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle profile update
-    console.log({ name, email, phone, description, image });
+    setIsSubmitting(true);
+    try {
+      await updateUserProfile({ name, phone, description });
+      toast({ title: "Success!", description: "Your profile has been updated." });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast({ title: "Error", description: "Could not update your profile.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -36,7 +62,7 @@ const DashboardSettings = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Profile Image */}
+            {/* Profile Image (functionality to be added next) */}
             <div className="flex items-center space-x-6">
               <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
                 <User className="h-10 w-10 text-gray-600" />
@@ -73,16 +99,14 @@ const DashboardSettings = () => {
                   required
                 />
               </div>
-
               <div>
                 <Label htmlFor="email">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
+                  placeholder="Email cannot be changed"
+                  disabled // Prevent email from being changed
                 />
               </div>
             </div>
@@ -109,8 +133,8 @@ const DashboardSettings = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700">
-              Update Profile
+            <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Update Profile'}
             </Button>
           </form>
         </CardContent>

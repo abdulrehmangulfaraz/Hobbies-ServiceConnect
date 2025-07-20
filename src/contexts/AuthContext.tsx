@@ -10,13 +10,16 @@ import {
   signOut,
 } from 'firebase/auth';
 import { auth, db } from '@/firebase';
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
 
 interface User {
   id: string;
   name: string | null;
   email: string | null;
-  planName?: 'none' | 'Basic' | 'Premium' | 'Enterprise'; // Specific plan names
+  planName?: 'none' | 'Basic' | 'Premium' | 'Enterprise';
+  phone?: string;
+  description?: string;
+  imageUrl?: string;
 }
 
 interface AuthContextType {
@@ -25,6 +28,7 @@ interface AuthContextType {
   googleLogin: () => Promise<boolean>;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
   updateSubscription: (planName: 'none' | 'Basic' | 'Premium' | 'Enterprise') => Promise<void>;
+  updateUserProfile: (data: { name: string; phone: string; description: string }) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -68,6 +72,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Updated function to handle user profile and service name synchronization
+// In src/contexts/AuthContext.tsx
+
+// Updated function to handle user profile and service data synchronization
+const updateUserProfile = async (data: { name: string; phone: string; description: string }) => {
+  if (!user) return;
+
+  // Start a Firestore batch
+  const batch = writeBatch(db);
+
+  // 1. Update the user's own profile document in the 'users' collection
+  const userDocRef = doc(db, "users", user.id);
+  batch.update(userDocRef, data);
+
+  // 2. If the name or phone number has changed, find and update all their services
+  if (data.name !== user.name || data.phone !== user.phone) {
+      const servicesCollection = collection(db, "services");
+      const q = query(servicesCollection, where("providerId", "==", user.id));
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach(doc => {
+          const serviceRef = doc.ref;
+          // Update both name and phone number on each service document
+          batch.update(serviceRef, {
+            name: data.name,
+            contactPhone: data.phone
+          });
+      });
+  }
+
+  // 3. Commit all the changes at once
+  await batch.commit();
+
+  // 4. Update the local user state in the app
+  setUser({ ...user, ...data });
+};
+
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
@@ -103,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setDoc(doc(db, "users", firebaseUser.uid), {
         name: name,
         email: email,
-        planName: 'none', // Default plan on signup
+        planName: 'none',
       });
       await signOut(auth);
       return true;
@@ -120,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, googleLogin, signup, logout, isLoading, updateSubscription }}>
+    <AuthContext.Provider value={{ user, login, googleLogin, signup, logout, isLoading, updateSubscription, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );
