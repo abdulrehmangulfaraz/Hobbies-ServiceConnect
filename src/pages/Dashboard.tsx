@@ -1,6 +1,7 @@
 // src/pages/Dashboard.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Keep existing useEffect
+import { useLocation, useNavigate } from 'react-router-dom'; // ADDED: For URL parameters and navigation
 import {
   SidebarProvider,
   Sidebar,
@@ -12,7 +13,9 @@ import {
   SidebarInset,
   SidebarTrigger
 } from '@/components/ui/sidebar';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext'; // Keep original relative path
+import { useToast } from '@/hooks/use-toast'; // ADDED: For displaying toasts
+
 import {
   Plus,
   Settings,
@@ -28,10 +31,55 @@ import Analytics from '../components/dashboard/Analytics';
 import Pricing from '../components/dashboard/Pricing';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  // Destructure updateSubscription from useAuth for plan updates
+  const { user, updateSubscription } = useAuth();
+  const { toast } = useToast(); // Initialize useToast
+  const location = useLocation(); // Initialize useLocation
+  const navigate = useNavigate(); // Initialize useNavigate
   const [activeTab, setActiveTab] = useState('home');
 
-  // New function to handle navigation from child components
+  // ADDED: useEffect to handle logic upon returning from Stripe
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const paymentStatus = queryParams.get('payment_status');
+    const sessionId = queryParams.get('session_id');
+
+    // Use sessionStorage to prevent re-processing on simple page refresh
+    // This flag should be cleared when a user logs out or leaves the app for a long time
+    const hasProcessedPayment = sessionStorage.getItem('hasProcessedPayment');
+
+    if (paymentStatus === 'success' && sessionId && user && !hasProcessedPayment) {
+      console.log("Stripe successful return detected for session ID:", sessionId);
+
+      // --- ⚠️ WARNING: INSECURE CLIENT-SIDE DEMONSTRATION ONLY ⚠️ ---
+      // In a real, secure application, you MUST verify this `sessionId`
+      // on your backend with Stripe's API before updating the user's plan in Firestore.
+      // The secure method involves Stripe Webhooks (e.g., listening for 'checkout.session.completed' events).
+      // This client-side update is for immediate feedback demonstration ONLY.
+
+      // Simulate successful plan update (assuming 'Premium' for this demo; adapt as needed for 'Basic')
+      updateSubscription('Premium') // Replace 'Premium' with logic to determine actual purchased plan
+        .then(() => {
+          toast({ title: "Payment Successful!", description: "Your plan has been updated!" });
+          sessionStorage.setItem('hasProcessedPayment', 'true'); // Mark as processed for this session
+          // Clean the URL to remove query parameters
+          navigate('/dashboard', { replace: true }); // Use replace to avoid adding to browser history
+        })
+        .catch(error => {
+          console.error("Failed to update subscription locally:", error);
+          toast({ title: "Payment Error", description: "There was an issue updating your plan. Please contact support.", variant: "destructive" });
+          navigate('/dashboard', { replace: true }); // Clean URL even on error
+        });
+
+    } else if (paymentStatus === 'cancelled') {
+      toast({ title: "Payment Cancelled", description: "You chose not to complete the payment." });
+      sessionStorage.removeItem('hasProcessedPayment'); // Clear flag if they cancelled
+      navigate('/dashboard', { replace: true }); // Clean the URL
+    }
+    // No action needed if paymentStatus is null/not recognized or if already processed
+  }, [location.search, user, navigate, toast, updateSubscription]); // Dependencies for useEffect
+
+  // Original function for handling navigation from child components
   const navigateToTab = (tabId: string) => {
     setActiveTab(tabId);
   };

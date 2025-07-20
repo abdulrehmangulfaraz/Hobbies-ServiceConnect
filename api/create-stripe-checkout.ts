@@ -22,15 +22,16 @@ export default async function handler(
     return res.status(400).json({ error: 'Price ID and User ID are required.' });
   }
 
-  const appUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:8080';
+  // MODIFIED: Changed localhost port from 8080 to 3000
+  const appUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
 
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${appUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/dashboard`,
+      success_url: `${appUrl}/dashboard?payment_status=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/dashboard?payment_status=cancelled`,
       client_reference_id: uid,
     });
 
