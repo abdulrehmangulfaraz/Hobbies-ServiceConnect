@@ -10,7 +10,7 @@ import { db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Define the type for our service data
+// CHANGE 1: Update the Service interface to include contact info
 interface Service {
     id: string;
     name: string;
@@ -25,6 +25,8 @@ interface Service {
     priceDetails: string;
     availability: string;
     experience: string;
+    contactEmail: string; // Added for email
+    contactPhone?: string; // Added for phone (optional)
 }
 
 const ServiceDetail = () => {
@@ -146,15 +148,25 @@ const ServiceDetail = () => {
           <div className="space-y-6">
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">Contact Provider</h3>
                 <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Call Now
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Send Email
+                  {/* CHANGE 2: Make the "Call Now" button a functional link */}
+                  {/* It will only appear if a phone number exists */}
+                  {service.contactPhone && (
+                    <Button variant="outline" className="w-full justify-start" asChild>
+                      <a href={`tel:${service.contactPhone}`}>
+                        <Phone className="h-4 w-4 mr-2" />
+                        Call Now
+                      </a>
+                    </Button>
+                  )}
+
+                  {/* CHANGE 3: Make the "Send Email" button a functional link */}
+                  <Button variant="outline" className="w-full justify-start" asChild>
+                    <a href={`mailto:${service.contactEmail}`}>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Email
+                    </a>
                   </Button>
                 </div>
               </CardContent>
