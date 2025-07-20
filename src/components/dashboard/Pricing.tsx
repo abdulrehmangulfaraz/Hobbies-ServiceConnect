@@ -31,7 +31,7 @@ const handlePlanSelection = async (plan: { name: PlanName, priceId: string }) =>
 
   try {
     // Call your new Vercel serverless function
-    const response = await fetch('/api/create-stripe-checkout', {
+    const response = await fetch('/.netlify/functions/create-stripe-checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
