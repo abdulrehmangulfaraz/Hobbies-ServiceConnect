@@ -13,6 +13,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import Pricing from './Pricing';
 import { Link } from 'react-router-dom';
 import { Upload, Loader2 } from 'lucide-react';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue // Import Select components
+} from '@/components/ui/select';
+
 
 // ⬇️ ACTION REQUIRED: Replace these with your Cloudinary details ⬇️
 const CLOUDINARY_CLOUD_NAME = "dwrkz6not";
@@ -22,11 +26,26 @@ interface AddServiceProps {
   navigateToTab: (tabId: string) => void;
 }
 
+// Define the categories. You can expand this list as needed.
+const categories = [
+  'Dog Walking',
+  'House Cleaning',
+  'Plumbing',
+  'Electrical',
+  'Gardening',
+  'Tutoring',
+  'Pet Sitting',
+  'Handyman',
+  'Beauty Services'
+];
+
+
 const ServiceForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
   const [serviceName, setServiceName] = useState('');
+  const [category, setCategory] = useState(''); // New state for category
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [longDescription, setLongDescription] = useState('');
@@ -74,6 +93,12 @@ const ServiceForm = () => {
       return;
     }
 
+    // Add validation for category selection
+    if (!category) {
+      toast({ title: "Category Required", description: "Please select a category for your service.", variant: "destructive" });
+      return;
+    }
+
     setIsLoading(true);
 
     const imageUrl = await handleImageUpload();
@@ -89,6 +114,7 @@ const ServiceForm = () => {
         providerImageUrl: user.imageUrl || '',
         contactPhone: user.phone || '',
         serviceName,
+        category, // Include the selected category
         price: `From ${price} DKK`,
         priceDetails,
         description,
@@ -105,7 +131,7 @@ const ServiceForm = () => {
       await addDoc(collection(db, "services"), newService);
       toast({ title: "Success!", description: "Your new service has been added." });
       // Reset form
-      setServiceName(''); setPrice(''); setDescription(''); setLongDescription('');
+      setServiceName(''); setCategory(''); setPrice(''); setDescription(''); setLongDescription(''); // Reset category
       setPostalCode(''); setLocation(''); setAvailability(''); setExperience('');
       setPriceDetails(''); setContactEmail(user?.email || ''); setImageFile(null);
     } catch (error) {
@@ -122,10 +148,24 @@ const ServiceForm = () => {
         <CardHeader><CardTitle>Describe Your Service</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ... other form fields ... */}
             <div className="space-y-2">
               <Label htmlFor="serviceName">Service Name</Label>
               <Input id="serviceName" placeholder="e.g., Professional Dog Walking" value={serviceName} onChange={(e) => setServiceName(e.target.value)} required />
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Service Image Upload */}
@@ -135,7 +175,6 @@ const ServiceForm = () => {
               {imageFile && <p className="text-sm text-gray-500 mt-1">Selected: {imageFile.name}</p>}
             </div>
 
-            {/* ... rest of the form ... */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="price">Starting Price (in DKK)</Label>

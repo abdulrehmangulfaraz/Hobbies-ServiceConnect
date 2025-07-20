@@ -16,6 +16,7 @@ interface ServiceCardProps {
   rating: number;
   postalCode: string;
   price: string;
+  category: string; // Add the new category prop
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({
@@ -27,7 +28,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   description,
   rating,
   postalCode,
-  price
+  price,
+  category // Destructure the new prop
 }) => {
   return (
     <Link to={`/service/${id}`} className="block group">
@@ -40,7 +42,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           />
           <div className="absolute top-4 right-4">
             <Badge className="bg-pink-500 text-white px-2 py-1 text-xs">
-              {serviceName}
+              {category} {/* Display the category here */}
             </Badge>
           </div>
         </div>

@@ -7,17 +7,17 @@ import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// CHANGE 1: Add providerImageUrl to the Service interface
 interface Service {
     id: string;
     name: string;
     image: string;
-    providerImageUrl?: string; // This is the new property
+    providerImageUrl?: string;
     serviceName: string;
     description: string;
     rating: number;
     postalCode: string;
     price: string;
+    category: string; // Add the new category property
 }
 
 const Services = () => {
@@ -55,7 +55,7 @@ const Services = () => {
 
     if (filters.category && filters.category !== 'All Categories') {
       filtered = filtered.filter(service =>
-        service.serviceName.toLowerCase().includes(filters.category.toLowerCase())
+        service.category.toLowerCase() === filters.category.toLowerCase()
       );
     }
 
@@ -104,12 +104,13 @@ const Services = () => {
                 id={service.id}
                 name={service.name}
                 image={service.image}
-                providerImageUrl={service.providerImageUrl} // CHANGE 2: Pass the prop to the card
+                providerImageUrl={service.providerImageUrl}
                 serviceName={service.serviceName}
                 description={service.description}
                 rating={service.rating}
                 postalCode={service.postalCode}
                 price={service.price}
+                category={service.category}
               />
             ))}
           </div>
