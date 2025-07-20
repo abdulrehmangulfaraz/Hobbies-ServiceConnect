@@ -8,16 +8,16 @@ import { db } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Service {
-    id: string;
-    name: string;
-    image: string;
-    providerImageUrl?: string;
-    serviceName: string;
-    description: string;
-    rating: number;
-    postalCode: string;
-    price: string;
-    category: string; // Add the new category property
+  id: string;
+  name: string;
+  image: string;
+  providerImageUrl?: string;
+  serviceName: string;
+  description: string;
+  rating: number;
+  postalCode: string;
+  price: string;
+  category: string; // Add the new category property
 }
 
 const Services = () => {
@@ -52,11 +52,15 @@ const Services = () => {
 
   const handleSearch = (filters: { category: string; postalCode: string; keyword: string }) => {
     let filtered = services;
-
+    
     if (filters.category && filters.category !== 'All Categories') {
-      filtered = filtered.filter(service =>
-        service.category.toLowerCase() === filters.category.toLowerCase()
-      );
+      filtered = filtered.filter(service => {
+        // Safely access service.category, converting null/undefined to an empty string
+        const serviceCat = service.category ? String(service.category).toLowerCase().trim() : '';
+        const filterCat = String(filters.category).toLowerCase().trim(); // Also ensure filter category is a string
+
+        return serviceCat === filterCat;
+      });
     }
 
     if (filters.postalCode) {
@@ -93,9 +97,9 @@ const Services = () => {
         </div>
 
         {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-80 w-full rounded-lg" />)}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-80 w-full rounded-lg" />)}
+          </div>
         ) : filteredServices.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredServices.map((service) => (

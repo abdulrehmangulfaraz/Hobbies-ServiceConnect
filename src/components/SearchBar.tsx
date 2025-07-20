@@ -23,7 +23,7 @@ const categories = [
 ];
 
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('All Categories');
   const [postalCode, setPostalCode] = useState('');
   const [keyword, setKeyword] = useState('');
 
