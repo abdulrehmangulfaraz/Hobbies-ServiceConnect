@@ -1,5 +1,6 @@
+// src/pages/Signup.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +16,29 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { signup, isLoading } = useAuth();
+  const { signup, isLoading, googleLogin, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Effect to redirect user if they are already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const handleGoogleSignup = async () => {
+    try {
+      const success = await googleLogin();
+      if (success) {
+        toast({ title: "Welcome!", description: "You have been successfully signed up with Google." });
+      } else {
+        toast({ title: "Google signup failed", description: "Please try again.", variant: "destructive" });
+      }
+    } catch (error) {
+       toast({ title: "Error", description: "An error occurred during Google signup. Please try again.", variant: "destructive" });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,6 +214,29 @@ const Signup = () => {
                 )}
               </Button>
             </form>
+
+            {/* Google Signup Button and Separator - Moved to appear after the form */}
+            <div className="space-y-4 mt-6"> {/* Added mt-6 for spacing from the form */}
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                        Or continue with
+                        </span>
+                    </div>
+                </div>
+                <Button
+                    variant="outline"
+                    className="w-full h-12 text-lg"
+                    onClick={handleGoogleSignup}
+                    disabled={isLoading}
+                >
+                    Sign up with Google
+                </Button>
+            </div>
+
 
             <div className="mt-6 text-center">
               <p className="text-gray-600">
