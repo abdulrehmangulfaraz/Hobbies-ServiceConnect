@@ -1,8 +1,9 @@
+// src/components/Header.tsx
 
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, LayoutDashboard } from 'lucide-react'; // Import LayoutDashboard icon
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -20,7 +21,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-20 h-20 flex items-center justify-center">
-              <img src="/logo.svg" />
+              <img src="/logo.svg" alt="ServiceConnect Logo" />
             </div>
           </Link>
 
@@ -36,21 +37,26 @@ const Header = () => {
               FAQ
             </Link>
 
+            {/* CHANGE: Add a conditional Dashboard link to the main nav */}
+            {user && (
+              <Link to="/dashboard" className="text-gray-700 hover:text-red-600 transition-colors flex items-center">
+                 <LayoutDashboard className="h-4 w-4 mr-2" />
+                Dashboard
+              </Link>
+            )}
           </nav>
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                <Link to="/dashboard">
-                  <Button variant="ghost" className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span className="hidden sm:inline">{user.name}</span>
-                  </Button>
-                </Link>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <div className="hidden sm:flex items-center space-x-2">
+                    <User className="h-5 w-5 text-gray-600" />
+                    <span className="font-medium">{user.name}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleLogout}
                   className="flex items-center space-x-2"
                 >
