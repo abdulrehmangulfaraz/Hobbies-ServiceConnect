@@ -7,8 +7,9 @@ import { Check, Star, CreditCard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { loadStripe } from '@stripe/stripe-js';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
-// Load the Stripe object with your publishable key from .env.local
+// Load Stripe with your VITE_STRIPE_PUBLISHABLE_KEY from .env
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 type PlanName = 'Basic' | 'Premium';
@@ -16,25 +17,50 @@ type PlanName = 'Basic' | 'Premium';
 const Pricing = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const functions = getFunctions();
 
-  const handlePlanSelection = async (plan: { name: PlanName, priceId: string }) => {
-    if (!user) {
-      toast({ title: "Please log in to select a plan.", variant: "destructive" });
-      return;
+// In src/components/dashboard/Pricing.tsx
+
+const handlePlanSelection = async (plan: { name: PlanName, priceId: string }) => {
+  if (!user) {
+    toast({ title: "Please log in to select a plan.", variant: "destructive" });
+    return;
+  }
+
+  toast({ title: "Redirecting to checkout..." });
+
+  try {
+    // Call your new Vercel serverless function
+    const response = await fetch('/api/create-stripe-checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        priceId: plan.priceId,
+        uid: user.id // Pass the user ID
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create checkout session');
     }
 
-    toast({ title: "Redirecting to checkout..." });
+    const { sessionId } = await response.json();
 
-    // This is where we will call our secure backend function (Firebase Cloud Function)
-    // For now, we'll log it to show it's ready.
-    console.log(`Preparing checkout for ${plan.name} with Price ID: ${plan.priceId}`);
-    alert(`This will redirect to Stripe Checkout for the ${plan.name} plan. The next step is to build the backend function that makes this happen.`);
-  };
+    // Redirect to Stripe Checkout
+    const stripe = await stripePromise;
+    if (stripe) {
+      await stripe.redirectToCheckout({ sessionId });
+    }
+  } catch (error) {
+    console.error("Error creating Stripe checkout session:", error);
+    toast({ title: "Error", description: "Could not redirect to checkout.", variant: "destructive" });
+  }
+};
 
   const plans = [
-    //
-    // ⬇️ ACTION REQUIRED: Replace these with your actual Price IDs from Stripe ⬇️
-    //
+    // Make sure these Price IDs exist in your Stripe account
     { name: 'Basic' as PlanName, price: '$19', period: 'month', description: 'Perfect for getting started', features: ['List up to 3 services', 'Basic messaging', 'Standard support', 'Basic analytics'], priceId: 'price_1RmZKZGCmL9LrymPyp7DbEyi' },
     { name: 'Premium' as PlanName, price: '$39', period: 'month', description: 'Most popular', popular: true, features: ['Unlimited services', 'Priority messaging', 'Advanced analytics', 'Premium support', 'Featured listings'], priceId: 'price_1RmZQiGCmL9LrymPXBmZrgXm' }
   ];
@@ -66,12 +92,12 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
-                <Button 
+                <Button
                   className={`w-full ${isCurrentPlan ? 'bg-green-600 hover:bg-green-700' : plan.popular ? 'bg-pink-600 hover:bg-pink-700' : 'bg-gray-600 hover:bg-gray-700'}`}
                   onClick={() => !isCurrentPlan && handlePlanSelection(plan)}
                   disabled={isCurrentPlan}
                 >
-                  {isCurrentPlan ? (<><Star className="h-4 w-4 mr-2" /> Current Plan</>) 
+                  {isCurrentPlan ? (<><Star className="h-4 w-4 mr-2" /> Current Plan</>)
                   : (<><CreditCard className="h-4 w-4 mr-2" /> {user?.planName !== 'none' ? 'Change Plan' : 'Select Plan'}</>)}
                 </Button>
               </CardContent>
