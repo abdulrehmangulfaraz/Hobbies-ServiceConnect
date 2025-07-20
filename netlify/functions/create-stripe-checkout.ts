@@ -1,31 +1,33 @@
-// /api/create-stripe-checkout.ts
-
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import { Handler } from '@netlify/functions';
 import Stripe from 'stripe';
 
-// Initialize Stripe with your secret key from Vercel environment variables
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-06-30.basil',
 });
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+export const handler: Handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
+      headers: { 'Content-Type': 'application/json' },
+    };
   }
-
-  const { priceId, uid } = req.body;
-
-  if (!priceId || !uid) {
-    return res.status(400).json({ error: 'Price ID and User ID are required.' });
-  }
-
-  // MODIFIED: Changed localhost port from 8080 to 3000
-  const appUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
 
   try {
+    const { priceId, uid } = JSON.parse(event.body || '{}');
+
+    if (!priceId || !uid) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Price ID and User ID are required.' }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    }
+
+    // Netlify provides the deploy URL in an environment variable
+    const appUrl = process.env.URL || 'http://localhost:8080';
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
@@ -35,9 +37,17 @@ export default async function handler(
       client_reference_id: uid,
     });
 
-    res.status(200).json({ sessionId: session.id });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ sessionId: session.id }),
+      headers: { 'Content-Type': 'application/json' },
+    };
   } catch (error: any) {
     console.error('Stripe Checkout error:', error);
-    res.status(500).json({ error: `An error occurred: ${error.message}` });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: `An error occurred: ${error.message}` }),
+      headers: { 'Content-Type': 'application/json' },
+    };
   }
-}
+};
