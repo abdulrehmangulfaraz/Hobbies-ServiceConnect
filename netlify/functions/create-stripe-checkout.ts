@@ -15,12 +15,12 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const { priceId, uid } = JSON.parse(event.body || '{}');
+    const { priceId, uid, planName } = JSON.parse(event.body || '{}');
 
-    if (!priceId || !uid) {
+    if (!priceId || !uid || !planName) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Price ID and User ID are required.' }),
+        body: JSON.stringify({ error: 'Price ID, User ID, and Plan Name are required.' }),
         headers: { 'Content-Type': 'application/json' },
       };
     }
@@ -32,7 +32,7 @@ export const handler: Handler = async (event) => {
       payment_method_types: ['card'],
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${appUrl}/dashboard?payment_status=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${appUrl}/dashboard?payment_status=success&session_id={CHECKOUT_SESSION_ID}&plan=${planName}`,
       cancel_url: `${appUrl}/dashboard?payment_status=cancelled`,
       client_reference_id: uid,
     });

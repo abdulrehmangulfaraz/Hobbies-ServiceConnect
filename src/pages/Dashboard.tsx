@@ -43,14 +43,13 @@ const Dashboard = () => {
     const queryParams = new URLSearchParams(location.search);
     const paymentStatus = queryParams.get('payment_status');
     const sessionId = queryParams.get('session_id');
-
+    const planName = queryParams.get('plan') as 'Basic' | 'Premium';
     // Use sessionStorage to prevent re-processing on simple page refresh
     // This flag should be cleared when a user logs out or leaves the app for a long time
     const hasProcessedPayment = sessionStorage.getItem('hasProcessedPayment');
 
-    if (paymentStatus === 'success' && sessionId && user && !hasProcessedPayment) {
-      console.log("Stripe successful return detected for session ID:", sessionId);
-
+    if (paymentStatus === 'success' && sessionId && user && !hasProcessedPayment && planName) {
+        console.log(`Stripe successful return for ${planName} plan.`);
       // --- ⚠️ WARNING: INSECURE CLIENT-SIDE DEMONSTRATION ONLY ⚠️ ---
       // In a real, secure application, you MUST verify this `sessionId`
       // on your backend with Stripe's API before updating the user's plan in Firestore.
@@ -58,14 +57,13 @@ const Dashboard = () => {
       // This client-side update is for immediate feedback demonstration ONLY.
 
       // Simulate successful plan update (assuming 'Premium' for this demo; adapt as needed for 'Basic')
-      updateSubscription('Premium') // Replace 'Premium' with logic to determine actual purchased plan
-        .then(() => {
-          toast({ title: "Payment Successful!", description: "Your plan has been updated!" });
-          sessionStorage.setItem('hasProcessedPayment', 'true'); // Mark as processed for this session
-          // Clean the URL to remove query parameters
-          navigate('/dashboard', { replace: true }); // Use replace to avoid adding to browser history
-        })
-        .catch(error => {
+        updateSubscription(planName)
+            .then(() => {
+                toast({ title: "Payment Successful!", description: `Your plan has been upgraded to ${planName}!` });
+                sessionStorage.setItem('hasProcessedPayment', 'true');
+                navigate('/dashboard', { replace: true });
+            })
+            .catch(error => {
           console.error("Failed to update subscription locally:", error);
           toast({ title: "Payment Error", description: "There was an issue updating your plan. Please contact support.", variant: "destructive" });
           navigate('/dashboard', { replace: true }); // Clean URL even on error

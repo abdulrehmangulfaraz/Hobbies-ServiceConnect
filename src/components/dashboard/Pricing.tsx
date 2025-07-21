@@ -19,45 +19,46 @@ const Pricing = () => {
   const { toast } = useToast();
   const functions = getFunctions();
 
-// In src/components/dashboard/Pricing.tsx
+  // In src/components/dashboard/Pricing.tsx
 
-const handlePlanSelection = async (plan: { name: PlanName, priceId: string }) => {
-  if (!user) {
-    toast({ title: "Please log in to select a plan.", variant: "destructive" });
-    return;
-  }
-
-  toast({ title: "Redirecting to checkout..." });
-
-  try {
-    // Call your new Vercel serverless function
-    const response = await fetch('/.netlify/functions/create-stripe-checkout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        priceId: plan.priceId,
-        uid: user.id // Pass the user ID
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to create checkout session');
+  const handlePlanSelection = async (plan: { name: PlanName, priceId: string }) => {
+    if (!user) {
+      toast({ title: "Please log in to select a plan.", variant: "destructive" });
+      return;
     }
 
-    const { sessionId } = await response.json();
+    toast({ title: "Redirecting to checkout..." });
 
-    // Redirect to Stripe Checkout
-    const stripe = await stripePromise;
-    if (stripe) {
-      await stripe.redirectToCheckout({ sessionId });
+    try {
+      // Call your new Vercel serverless function
+      const response = await fetch('/.netlify/functions/create-stripe-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId: plan.priceId,
+          uid: user.id, // Pass the user ID
+          planName: plan.name // Add this line
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session');
+      }
+
+      const { sessionId } = await response.json();
+
+      // Redirect to Stripe Checkout
+      const stripe = await stripePromise;
+      if (stripe) {
+        await stripe.redirectToCheckout({ sessionId });
+      }
+    } catch (error) {
+      console.error("Error creating Stripe checkout session:", error);
+      toast({ title: "Error", description: "Could not redirect to checkout.", variant: "destructive" });
     }
-  } catch (error) {
-    console.error("Error creating Stripe checkout session:", error);
-    toast({ title: "Error", description: "Could not redirect to checkout.", variant: "destructive" });
-  }
-};
+  };
 
   const plans = [
     // Make sure these Price IDs exist in your Stripe account
@@ -76,8 +77,8 @@ const handlePlanSelection = async (plan: { name: PlanName, priceId: string }) =>
           const isCurrentPlan = plan.name === user?.planName;
           return (
             <Card key={index} className={`relative ${isCurrentPlan ? 'ring-2 ring-green-500' : ''} ${plan.popular ? 'border-2 border-pink-500' : ''}`}>
-              {plan.popular && !isCurrentPlan && ( <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-pink-500">Most Popular</Badge> )}
-              {isCurrentPlan && ( <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-green-500">Current Plan</Badge> )}
+              {plan.popular && !isCurrentPlan && (<Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-pink-500">Most Popular</Badge>)}
+              {isCurrentPlan && (<Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-green-500">Current Plan</Badge>)}
               <CardHeader className="text-center">
                 <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
                 <div className="mt-4"><span className="text-4xl font-bold">{plan.price}</span><span className="text-gray-600">/{plan.period}</span></div>
@@ -98,7 +99,7 @@ const handlePlanSelection = async (plan: { name: PlanName, priceId: string }) =>
                   disabled={isCurrentPlan}
                 >
                   {isCurrentPlan ? (<><Star className="h-4 w-4 mr-2" /> Current Plan</>)
-                  : (<><CreditCard className="h-4 w-4 mr-2" /> {user?.planName !== 'none' ? 'Change Plan' : 'Select Plan'}</>)}
+                    : (<><CreditCard className="h-4 w-4 mr-2" /> {user?.planName !== 'none' ? 'Change Plan' : 'Select Plan'}</>)}
                 </Button>
               </CardContent>
             </Card>
