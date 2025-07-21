@@ -7,33 +7,30 @@ const Hero = () => {
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-8">
             Få overblik over{' '}
-            <span className="text-red-500">creators</span>{' '}
+            <span className="text-[#ff00c8]">creators</span>{' '}
             og{' '}
-            <span className="text-red-500">betal</span>{' '}
+            <span className="text-[#ff00c8]">betal</span>{' '}
             kun for visninger
           </h1>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <button className="bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 transition-colors">
-              Kom i gang gratis
-            </button>
-            <button className="text-gray-700 hover:text-gray-900 transition-colors underline">
-              Se vores priser
+            <button className="bg-[#ff00c8] text-white px-8 py-3 rounded-full hover:bg-[#ff45d7] transition-colors">
+                <a href="/signup">Kom i gang gratis</a> 
             </button>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
             <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
-              <h3 className="font-semibold text-gray-900 mb-2">@influencer</h3>
-              <div className="text-red-500 font-bold text-xl">250 DKK</div>
+              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"> <img src="/infulencer.jpg"  className="rounded-full w-16 h-16" alt="" /></div>
+              <h3 className="font-semibold text-gray-900 mb-2">@Electrical</h3>
+              <div className="text-[#ff00c8] font-bold text-xl">250 DKK</div>
               <div className="text-gray-600 text-sm">per post</div>
             </div>
             
             <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
-              <h3 className="font-semibold text-gray-900 mb-2">@creator</h3>
-              <div className="text-red-500 font-bold text-xl">350 DKK</div>
+              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"><img src="/infulencer2.jpg"  className="rounded-full w-16 h-16" alt="" /></div>
+              <h3 className="font-semibold text-gray-900 mb-2">@Tutoring</h3>
+              <div className="text-[#ff00c8] font-bold text-xl">500 DKK</div>
               <div className="text-gray-600 text-sm">per post</div>
             </div>
           </div>

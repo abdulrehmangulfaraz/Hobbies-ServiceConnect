@@ -12,7 +12,7 @@ import { User, Upload, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 // ⬇️ ACTION REQUIRED: Replace these with your Cloudinary details ⬇️
-const CLOUDINARY_CLOUD_NAME = "dwrkz6not"; // Corrected based on your image
+const CLOUDINARY_CLOUD_NAME = "dxvvpd8rn"; // Corrected based on your image
 const CLOUDINARY_UPLOAD_PRESET = "hobbies_preset"; // The name you created in the last step
 
 const DashboardSettings = () => {

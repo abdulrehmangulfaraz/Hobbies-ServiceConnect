@@ -109,10 +109,10 @@ const Dashboard = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+    <SidebarProvider >
+      <div className="min-h-screen flex w-full ">
         <Sidebar className="border-r">
-          <SidebarHeader className="p-4">
+          <SidebarHeader className="p-4 mt-">
             <div className="flex items-center space-x-2">
               <User className="h-8 w-8 text-pink-600" />
               <div>

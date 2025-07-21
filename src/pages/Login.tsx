@@ -9,6 +9,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
+import { FcGoogle } from "react-icons/fc";
+
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +83,8 @@ const Login = () => {
                     onClick={handleGoogleLogin}
                     disabled={isLoading}
                 >
-                    Continue with Google
+                    <FcGoogle  />
+                      Continue with Google
                 </Button>
 
                 <div className="relative">
@@ -115,7 +119,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 h-12 text-lg" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-[#ff00c8] hover:bg-pink-600 h-12 text-lg" disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>

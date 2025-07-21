@@ -13,14 +13,14 @@ const Footer = () => {
               <li><a href="#" className="hover:text-gray-900 transition-colors">Priser</a></li>
               <li><a href="#" className="hover:text-gray-900 transition-colors">Cases</a></li>
               <li><a href="#" className="hover:text-gray-900 transition-colors">Om os</a></li>
-              <li><a href="#" className="hover:text-gray-900 transition-colors">FAQ</a></li>
+              <li><a href="/faq" className="hover:text-gray-900 transition-colors">FAQ</a></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">Kontakt</h4>
             <ul className="space-y-2 text-gray-600">
-              <li>business@burstcreators.dk</li>
+              <li>info@hobbiies.dk</li>
               <li>+45 31 17 13 01</li>
               <li>Frederiksberg dk 1, 1719</li>
               <li>København</li>
@@ -29,10 +29,11 @@ const Footer = () => {
           
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">Juridisk</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li><a href="#" className="hover:text-gray-900 transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-gray-900 transition-colors">Terms of Use</a></li>
-              <li><a href="#" className="hover:text-gray-900 transition-colors">CVR: 43845831</a></li>
+            <ul className="space-y-2 flex flex-col text-gray-600">
+              <a href="/resources/images/PrivacyPolicyDK.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">Privacy Policy(DK)</a>
+              <a href="/resources/images/PrivacyPolicyEN.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">Privacy Policy(EN)</a>
+              <a href="/resources/images/T&CHobbiiesDK.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">Terms of use(DK)</a>
+              <a href="/resources/images/T&CHobbiiesEN.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">Terms of use(EN)</a>
             </ul>
           </div>
           
@@ -49,8 +50,8 @@ const Footer = () => {
         <div className="border-t border-gray-200 mt-8 pt-8 text-center text-gray-600">
           <p>© 2024 Burst Creators - Bygger verden af creators</p>
           <div className="flex justify-center space-x-4 mt-4">
-            <a href="#" className="hover:text-gray-900 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-gray-900 transition-colors">Terms of Use</a>
+              <a href="/resources/images/PrivacyPolicyEN.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">Privacy Policy(EN)</a>
+              <a href="/resources/images/T&CHobbiiesEN.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">Terms of use(EN)</a>
             <a href="#" className="hover:text-gray-900 transition-colors">CVR: 43845831</a>
           </div>
         </div>

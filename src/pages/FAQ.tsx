@@ -1,6 +1,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const FAQ = () => {
   const faqs = [
@@ -82,20 +88,41 @@ const FAQ = () => {
               <p className="text-gray-600 mb-6">
                 Can't find the answer you're looking for? Our support team is here to help.
               </p>
-              <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-                <a
-                  href="mailto:support@serviceconnect.com"
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
-                >
-                  Email Support
-                </a>
-                <a
-                  href="tel:+1234567890"
-                  className="inline-flex items-center px-6 py-3 border border-red-300 text-base font-medium rounded-md text-red-700 bg-white hover:bg-red-50 transition-colors"
-                >
-                  Call Us
-                </a>
-              </div>
+              <TooltipProvider>
+      <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
+        
+        {/* Email Support with Tooltip */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <a
+              href="mailto:support@serviceconnect.com"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
+            >
+              Email Support
+            </a>
+          </TooltipTrigger>
+          <TooltipContent>
+            info@hobbiies.dk
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Call Us with Tooltip */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <a
+              href="tel:+1234567890"
+              className="inline-flex items-center px-6 py-3 border border-red-300 text-base font-medium rounded-md text-red-700 bg-white hover:bg-red-50 transition-colors"
+            >
+              Call Us
+            </a>
+          </TooltipTrigger>
+          <TooltipContent>
+            +1 (234) 567-890
+          </TooltipContent>
+        </Tooltip>
+
+      </div>
+    </TooltipProvider>
             </CardContent>
           </Card>
         </div>

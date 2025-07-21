@@ -19,7 +19,7 @@ import {
 
 
 // ⬇️ ACTION REQUIRED: Replace these with your Cloudinary details ⬇️
-const CLOUDINARY_CLOUD_NAME = "dwrkz6not";
+const CLOUDINARY_CLOUD_NAME = "dxvvpd8rn";
 const CLOUDINARY_UPLOAD_PRESET = "hobbies_preset"; // The same preset you created earlier
 
 interface AddServiceProps {

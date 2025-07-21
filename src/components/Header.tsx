@@ -27,19 +27,19 @@ const Header = () => {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-red-600 transition-colors">
+            <Link to="/" className="text-gray-700 hover:text-[#ff00c8] transition-colors">
               Home
             </Link>
-            <Link to="/services" className="text-gray-700 hover:text-red-600 transition-colors">
+            <Link to="/services" className="text-gray-700 hover:text-[#ff00c8] transition-colors">
               Services
             </Link>
-            <Link to="/faq" className="text-gray-700 hover:text-red-600 transition-colors">
+            <Link to="/faq" className="text-gray-700 hover:text-[#ff00c8] transition-colors">
               FAQ
             </Link>
 
             {/* CHANGE: Add a conditional Dashboard link to the main nav */}
             {user && (
-              <Link to="/dashboard" className="text-gray-700 hover:text-red-600 transition-colors flex items-center">
+              <Link to="/dashboard" className="text-gray-700 hover:text-[#ff00c8] transition-colors flex items-center">
                  <LayoutDashboard className="h-4 w-4 mr-2" />
                 Dashboard
               </Link>
@@ -70,7 +70,7 @@ const Header = () => {
                   <Button variant="ghost">Login</Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="bg-red-600 hover:bg-red-700">Sign Up</Button>
+                  <Button className="bg-[#ff00c8] ">Sign Up</Button>
                 </Link>
               </>
             )}

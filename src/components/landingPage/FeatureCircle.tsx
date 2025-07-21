@@ -6,7 +6,7 @@ const FeatureCircle = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center gap-12">
           <div className="lg:w-1/2">
-            <div className="w-80 h-80 bg-red-500 rounded-full flex items-center justify-center text-white mx-auto">
+            <div className="w-80 h-80 bg-[#ff00c8] p-10 rounded-full flex items-center justify-center text-white mx-auto">
               <div className="text-center">
                 <h3 className="text-2xl font-bold mb-4">
                   Oplev hemligt af<br />

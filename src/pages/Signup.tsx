@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -201,7 +202,7 @@ const Signup = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-red-600 hover:bg-red-700 h-12 text-lg"
+                className="w-full bg-[#ff00c8] h-12 text-lg"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -233,7 +234,7 @@ const Signup = () => {
                     onClick={handleGoogleSignup}
                     disabled={isLoading}
                 >
-                    Sign up with Google
+                  <FcGoogle  />  Sign up with Google
                 </Button>
             </div>
 
@@ -241,7 +242,7 @@ const Signup = () => {
             <div className="mt-6 text-center">
               <p className="text-gray-600">
                 Already have an account?{' '}
-                <Link to="/login" className="text-red-600 hover:text-red-700 font-medium">
+                <Link to="/login" className="text-[#ff00c8] hover:text-red-700 font-medium">
                   Sign in here
                 </Link>
               </p>
